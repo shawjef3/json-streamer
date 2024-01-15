@@ -40,7 +40,7 @@ object ZioMethods {
     ZStream.repeatZIOOption(nextZio(p))
   }
 
-  def toJValues[R, E](decider: Decider, tokens: ZStream[R, E, ValuedJsonToken]): ZStream[R, E, (Path, Json)] = {
+  def toJsons[R, E](decider: Decider, tokens: ZStream[R, E, ValuedJsonToken]): ZStream[R, E, (Path, Json)] = {
     tokens.mapAccum[State, Option[(Path, Json)]](State.Init) {
       case (state, token) =>
         val nextState = state.nextState(decider, token)

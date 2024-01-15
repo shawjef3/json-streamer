@@ -44,8 +44,6 @@ object Path {
 
   object Elem {
     case class Field(name: String) extends Elem
-    case class Index(index: Long) extends Elem {
-      def step: Index = Index(index + 1)
-    }
+    case class Index(index: Long) extends Elem
   }
 }

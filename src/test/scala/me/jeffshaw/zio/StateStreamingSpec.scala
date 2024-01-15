@@ -18,7 +18,7 @@ class StateStreamingSpec extends AnyFunSuite {
     Unsafe.unsafe { implicit unsafe =>
       val js =
         Runtime.default.unsafe.run {
-          ZioMethods.toJValues(Decider.Build, ZStream(ValuedJsonToken.StartObject, ValuedJsonToken.EndObject)).runCollect
+          ZioMethods.toJsons(Decider.Build, ZStream(ValuedJsonToken.StartObject, ValuedJsonToken.EndObject)).runCollect
         }
       assert(js.isSuccess)
       assertResult(Chunk((Path.root, Json.obj())))(js.getOrThrowFiberFailure())
@@ -29,7 +29,7 @@ class StateStreamingSpec extends AnyFunSuite {
     Unsafe.unsafe { implicit unsafe =>
       val js =
         Runtime.default.unsafe.run {
-          ZioMethods.toJValues(Decider.Build, ZStream(ValuedJsonToken.StartObject, ValuedJsonToken.FieldName("hi"), ValuedJsonToken.JInt(3), ValuedJsonToken.EndObject)).runCollect
+          ZioMethods.toJsons(Decider.Build, ZStream(ValuedJsonToken.StartObject, ValuedJsonToken.FieldName("hi"), ValuedJsonToken.JInt(3), ValuedJsonToken.EndObject)).runCollect
         }
       assert(js.isSuccess)
       assertResult(Chunk((Path.root, Json.obj("hi" -> Json.fromInt(3)))))(js.getOrThrowFiberFailure())
@@ -40,7 +40,7 @@ class StateStreamingSpec extends AnyFunSuite {
     Unsafe.unsafe { implicit unsafe =>
       val js =
         Runtime.default.unsafe.run {
-          ZioMethods.toJValues(Decider.Build, ZioMethods.stream(jsonFactory.createParser("""{"a":0,"b":[1],"c":{"d":2}}"""))).runCollect
+          ZioMethods.toJsons(Decider.Build, ZioMethods.stream(jsonFactory.createParser("""{"a":0,"b":[1],"c":{"d":2}}"""))).runCollect
         }
       assert(js.isSuccess)
       assertResult(Chunk((Path.root, Json.obj("a" -> Json.fromInt(0), "b" -> Json.arr(Json.fromInt(1)), "c" -> Json.obj("d" -> Json.fromInt(2))))))(js.getOrThrowFiberFailure())
@@ -51,7 +51,7 @@ class StateStreamingSpec extends AnyFunSuite {
     Unsafe.unsafe { implicit unsafe =>
       val js =
         Runtime.default.unsafe.run {
-          ZioMethods.toJValues(Decider.Build, ZioMethods.stream(jsonFactory.createParser("""{"a":0,"b":[1],"c":{"d":2}}{"a":0,"b":[1],"c":{"d":2}}"""))).runCollect
+          ZioMethods.toJsons(Decider.Build, ZioMethods.stream(jsonFactory.createParser("""{"a":0,"b":[1],"c":{"d":2}}{"a":0,"b":[1],"c":{"d":2}}"""))).runCollect
         }
       assert(js.isSuccess)
       assertResult(Chunk.fill(2)((Path.root, Json.obj("a" -> Json.fromInt(0), "b" -> Json.arr(Json.fromInt(1)), "c" -> Json.obj("d" -> Json.fromInt(2))))))(js.getOrThrowFiberFailure())
@@ -62,7 +62,7 @@ class StateStreamingSpec extends AnyFunSuite {
     Unsafe.unsafe { implicit unsafe =>
       val js =
         Runtime.default.unsafe.run {
-          ZioMethods.toJValues(Decider.Stream, ZStream(ValuedJsonToken.StartObject, ValuedJsonToken.EndObject)).runCollect
+          ZioMethods.toJsons(Decider.Stream, ZStream(ValuedJsonToken.StartObject, ValuedJsonToken.EndObject)).runCollect
         }
       assert(js.isSuccess)
       assertResult(Chunk.empty)(js.getOrThrowFiberFailure())
@@ -73,7 +73,7 @@ class StateStreamingSpec extends AnyFunSuite {
     Unsafe.unsafe { implicit unsafe =>
       val js =
         Runtime.default.unsafe.run {
-          ZioMethods.toJValues(Decider.Stream, ZStream(ValuedJsonToken.StartObject, ValuedJsonToken.FieldName("hi"), ValuedJsonToken.JInt(3), ValuedJsonToken.EndObject)).runCollect
+          ZioMethods.toJsons(Decider.Stream, ZStream(ValuedJsonToken.StartObject, ValuedJsonToken.FieldName("hi"), ValuedJsonToken.JInt(3), ValuedJsonToken.EndObject)).runCollect
         }
       assert(js.isSuccess)
       assertResult(Chunk((Path.root.field("hi"), Json.fromInt(3))))(js.getOrThrowFiberFailure())
@@ -84,7 +84,7 @@ class StateStreamingSpec extends AnyFunSuite {
     Unsafe.unsafe { implicit unsafe =>
       val js =
         Runtime.default.unsafe.run {
-          ZioMethods.toJValues(Decider.streamUntilDepth(1), ZioMethods.stream(jsonFactory.createParser("""{"a":0,"b":[1],"c":{"d":2}}"""))).runCollect
+          ZioMethods.toJsons(Decider.streamUntilDepth(1), ZioMethods.stream(jsonFactory.createParser("""{"a":0,"b":[1],"c":{"d":2}}"""))).runCollect
         }
       assert(js.isSuccess)
       assertResult(Chunk((Path.root.field("a"), Json.fromInt(0)), (Path.root.field("b"), Json.arr(Json.fromInt(1))), (Path.root.field("c"), Json.obj("d" -> Json.fromInt(2)))))(js.getOrThrowFiberFailure())
@@ -95,7 +95,7 @@ class StateStreamingSpec extends AnyFunSuite {
     Unsafe.unsafe { implicit unsafe =>
       val js =
         Runtime.default.unsafe.run {
-          ZioMethods.toJValues(Decider.streamUntilDepth(1), ZioMethods.stream(jsonFactory.createParser("""{"a":0,"b":[1],"c":{"d":2}}{"a":0,"b":[1],"c":{"d":2}}"""))).runCollect
+          ZioMethods.toJsons(Decider.streamUntilDepth(1), ZioMethods.stream(jsonFactory.createParser("""{"a":0,"b":[1],"c":{"d":2}}{"a":0,"b":[1],"c":{"d":2}}"""))).runCollect
         }
       assert(js.isSuccess)
       assertResult(Chunk.fill(2)(Chunk((Path.root.field("a"), Json.fromInt(0)), (Path.root.field("b"), Json.arr(Json.fromInt(1))), (Path.root.field("c"), Json.obj("d" -> Json.fromInt(2))))).flatten)(js.getOrThrowFiberFailure())
@@ -106,7 +106,7 @@ class StateStreamingSpec extends AnyFunSuite {
     Unsafe.unsafe { implicit unsafe =>
       val js =
         Runtime.default.unsafe.run {
-          ZioMethods.toJValues(Decider.Ignore, ZStream(ValuedJsonToken.StartObject, ValuedJsonToken.EndObject)).runCollect
+          ZioMethods.toJsons(Decider.Ignore, ZStream(ValuedJsonToken.StartObject, ValuedJsonToken.EndObject)).runCollect
         }
       assert(js.isSuccess)
       assertResult(Chunk.empty)(js.getOrThrowFiberFailure())
@@ -117,7 +117,7 @@ class StateStreamingSpec extends AnyFunSuite {
     Unsafe.unsafe { implicit unsafe =>
       val js =
         Runtime.default.unsafe.run {
-          ZioMethods.toJValues(Decider.Ignore, ZStream(ValuedJsonToken.StartObject, ValuedJsonToken.FieldName("hi"), ValuedJsonToken.JInt(3), ValuedJsonToken.EndObject)).runCollect
+          ZioMethods.toJsons(Decider.Ignore, ZStream(ValuedJsonToken.StartObject, ValuedJsonToken.FieldName("hi"), ValuedJsonToken.JInt(3), ValuedJsonToken.EndObject)).runCollect
         }
       assert(js.isSuccess)
       assertResult(Chunk.empty)(js.getOrThrowFiberFailure())
@@ -128,7 +128,7 @@ class StateStreamingSpec extends AnyFunSuite {
     Unsafe.unsafe { implicit unsafe =>
       val js =
         Runtime.default.unsafe.run {
-          ZioMethods.toJValues(Decider.Build, ZStream(ValuedJsonToken.StartArray, ValuedJsonToken.JInt(3), ValuedJsonToken.EndArray)).runCollect
+          ZioMethods.toJsons(Decider.Build, ZStream(ValuedJsonToken.StartArray, ValuedJsonToken.JInt(3), ValuedJsonToken.EndArray)).runCollect
         }
       assert(js.isSuccess)
       assertResult(Chunk((Path.root, Json.arr(Json.fromInt(3)))))(js.getOrThrowFiberFailure())
@@ -139,7 +139,7 @@ class StateStreamingSpec extends AnyFunSuite {
     Unsafe.unsafe { implicit unsafe =>
       val js =
         Runtime.default.unsafe.run {
-          ZioMethods.toJValues(Decider.Stream, ZStream(ValuedJsonToken.StartArray, ValuedJsonToken.EndArray)).runCollect
+          ZioMethods.toJsons(Decider.Stream, ZStream(ValuedJsonToken.StartArray, ValuedJsonToken.EndArray)).runCollect
         }
       assert(js.isSuccess)
       assertResult(Chunk.empty)(js.getOrThrowFiberFailure())
@@ -150,7 +150,7 @@ class StateStreamingSpec extends AnyFunSuite {
     Unsafe.unsafe { implicit unsafe =>
       val js =
         Runtime.default.unsafe.run {
-          ZioMethods.toJValues(Decider.Stream, ZStream(ValuedJsonToken.StartArray, ValuedJsonToken.JInt(3), ValuedJsonToken.EndArray)).runCollect
+          ZioMethods.toJsons(Decider.Stream, ZStream(ValuedJsonToken.StartArray, ValuedJsonToken.JInt(3), ValuedJsonToken.EndArray)).runCollect
         }
       assert(js.isSuccess)
       assertResult(Chunk((Path.root.index(0), Json.fromInt(3))))(js.getOrThrowFiberFailure())
@@ -161,7 +161,7 @@ class StateStreamingSpec extends AnyFunSuite {
     Unsafe.unsafe { implicit unsafe =>
       val js =
         Runtime.default.unsafe.run {
-          ZioMethods.toJValues(Decider.streamUntilDepth(1), ZStream(ValuedJsonToken.StartArray, ValuedJsonToken.JInt(0), ValuedJsonToken.StartArray, ValuedJsonToken.JInt(1), ValuedJsonToken.EndArray, ValuedJsonToken.EndArray)).runCollect
+          ZioMethods.toJsons(Decider.streamUntilDepth(1), ZStream(ValuedJsonToken.StartArray, ValuedJsonToken.JInt(0), ValuedJsonToken.StartArray, ValuedJsonToken.JInt(1), ValuedJsonToken.EndArray, ValuedJsonToken.EndArray)).runCollect
         }
       assert(js.isSuccess)
       assertResult(Chunk((Path.root.index(0), Json.fromInt(0)), (Path.root.index(1), Json.arr(Json.fromInt(1)))))(js.getOrThrowFiberFailure())
@@ -172,7 +172,7 @@ class StateStreamingSpec extends AnyFunSuite {
     Unsafe.unsafe { implicit unsafe =>
       val js =
         Runtime.default.unsafe.run {
-          ZioMethods.toJValues(Decider.buildAtDepth(2), ZStream(ValuedJsonToken.StartArray, ValuedJsonToken.JInt(0), ValuedJsonToken.StartArray, ValuedJsonToken.JInt(1), ValuedJsonToken.EndArray, ValuedJsonToken.EndArray)).runCollect
+          ZioMethods.toJsons(Decider.buildAtDepth(2), ZStream(ValuedJsonToken.StartArray, ValuedJsonToken.JInt(0), ValuedJsonToken.StartArray, ValuedJsonToken.JInt(1), ValuedJsonToken.EndArray, ValuedJsonToken.EndArray)).runCollect
         }
       assert(js.isSuccess)
       assertResult(Chunk((Path.root.index(1).index(0), Json.fromInt(1))))(js.getOrThrowFiberFailure())
@@ -193,7 +193,7 @@ class StateStreamingSpec extends AnyFunSuite {
     val streamed: Chunk[(Path, Json)] = {
       Unsafe.unsafe { implicit unsafe =>
         Runtime.default.unsafe.run {
-          ZioMethods.toJValues(Decider.Build, ZioMethods.stream(jsonFactory.createParser(string))).runCollect
+          ZioMethods.toJsons(Decider.Build, ZioMethods.stream(jsonFactory.createParser(string))).runCollect
         }.getOrThrow()
       }
     }

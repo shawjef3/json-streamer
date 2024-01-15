@@ -10,7 +10,7 @@ object IteratorMethods {
       ValuedJsonToken(p, token)
     }
 
-  def toJValues(decider: Decider, tokens: Iterator[ValuedJsonToken]): Iterator[(Path, Json)] = {
+  def toJsons(decider: Decider, tokens: Iterator[ValuedJsonToken]): Iterator[(Path, Json)] = {
     tokens.scanLeft[State](State.Init) {
       case (state, token) =>
         state.nextState(decider, token)

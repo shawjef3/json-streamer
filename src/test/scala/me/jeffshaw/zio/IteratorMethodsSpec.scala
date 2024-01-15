@@ -2,7 +2,7 @@ package me.jeffshaw.zio
 
 import org.scalatest.funsuite.AnyFunSuite
 
-class IteratorMethodsSpec extends AnyFunSuite with MethodUtils {
+class IteratorMethodsSpec extends AnyFunSuite with TestUtils {
 
   test("empty object") {
     val string = "{}"

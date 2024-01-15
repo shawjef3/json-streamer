@@ -3,7 +3,7 @@ package me.jeffshaw.zio
 import org.scalatest.funsuite.AnyFunSuite
 import zio.{Chunk, Runtime, Unsafe}
 
-class ZioMethodsSpec extends AnyFunSuite with MethodUtils {
+class ZioMethodsSpec extends AnyFunSuite with TestUtils {
 
   test("empty object") {
     val string = "{}"

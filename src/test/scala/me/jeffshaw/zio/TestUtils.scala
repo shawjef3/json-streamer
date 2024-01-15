@@ -2,17 +2,26 @@ package me.jeffshaw.zio
 
 import com.fasterxml.jackson.core.{JsonFactory, JsonFactoryBuilder, JsonParser, StreamReadConstraints}
 import java.io.InputStream
-import scala.jdk.CollectionConverters._
+import scala.collection.JavaConverters._
 
-trait MethodUtils {
+trait TestUtils {
 
-  val objectCount = 1_000_000
+  val objectCount: Int = 1000000
 
   val jsonFactory: JsonFactory =
     new JsonFactoryBuilder().build()
       .setStreamReadConstraints(StreamReadConstraints.builder().maxNestingDepth(objectCount).build())
 
-  def getInputStream(strings: LazyList[String]): InputStream = {
+  lazy val exampleJson: String = {
+    val in = scala.io.Source.fromResource("example.json")
+    try {
+      in.mkString
+    } finally {
+      in.close()
+    }
+  }
+
+  def getInputStream(strings: Stream[String]): InputStream = {
     new InputStream() {
       val ints: Iterator[Integer] = strings.iterator.flatMap(_.codePoints().iterator.asScala)
       override def read(): Int = {
@@ -25,27 +34,27 @@ trait MethodUtils {
     }
   }
 
-  def getParser(tokens: LazyList[String]): JsonParser = {
+  def getParser(tokens: Stream[String]): JsonParser = {
     jsonFactory.createParser(getInputStream(tokens))
   }
 
   def serialObjects: JsonParser = {
-    getParser(LazyList.fill(objectCount)("{}"))
+    getParser(Stream.fill(objectCount)("{}"))
   }
 
   def embeddedObjects: JsonParser = {
     val head = "{\"a\":"
     val middle = "0"
     val tail = "}"
-    getParser(LazyList.fill(objectCount)(head) ++ LazyList(middle) ++ LazyList.fill(objectCount)(tail))
+    getParser(Stream.fill(objectCount)(head) ++ Stream(middle) ++ Stream.fill(objectCount)(tail))
   }
 
   def serialArrays: JsonParser = {
-    getParser(LazyList.fill(objectCount)("[]"))
+    getParser(Stream.fill(objectCount)("[]"))
   }
 
   def embeddedArrays: JsonParser = {
-    getParser(LazyList.fill(objectCount)("[") ++ LazyList.fill(objectCount)("]"))
+    getParser(Stream.fill(objectCount)("[") ++ Stream.fill(objectCount)("]"))
   }
 
 }

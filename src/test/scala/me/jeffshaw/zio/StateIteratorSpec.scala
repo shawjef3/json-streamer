@@ -1,12 +1,9 @@
 package me.jeffshaw.zio
 
-import com.fasterxml.jackson.core.{JsonFactory, JsonFactoryBuilder}
 import io.circe.Json
 import org.scalatest.funsuite.AnyFunSuite
 
-class StateIteratorSpec extends AnyFunSuite {
-
-  val jsonFactory: JsonFactory = new JsonFactoryBuilder().build()
+class StateIteratorSpec extends AnyFunSuite with TestUtils {
 
   test("Init") {
     assertResult(State.BuildingObject(ObjectDecision.Build, State.Init))(State.Init.nextState(Decider.Build, ValuedJsonToken.StartObject))
@@ -119,17 +116,9 @@ class StateIteratorSpec extends AnyFunSuite {
 
   test("same as json parser") {
     import io.circe.parser._
-    val string = {
-      val in = scala.io.Source.fromResource("example.json")
-      try {
-        in.mkString
-      } finally {
-        in.close()
-      }
-    }
-    val native: Json = parse(string).getOrElse(throw new Exception("invalid json"))
+    val native: Json = parse(exampleJson).getOrElse(throw new Exception("invalid json"))
     val iterated: Vector[(Path, Json)] =
-      IteratorMethods.toJsons(Decider.Build, IteratorMethods.iterator(jsonFactory.createParser(string))).toVector
+      IteratorMethods.toJsons(Decider.Build, IteratorMethods.iterator(jsonFactory.createParser(exampleJson))).toVector
     assertResult(Vector(Path.root -> native))(iterated)
   }
 }

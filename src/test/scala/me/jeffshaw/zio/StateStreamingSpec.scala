@@ -1,14 +1,11 @@
 package me.jeffshaw.zio
 
-import com.fasterxml.jackson.core.{JsonFactory, JsonFactoryBuilder}
 import io.circe.Json
 import org.scalatest.funsuite.AnyFunSuite
 import zio.{Chunk, Runtime, Unsafe}
 import zio.stream.ZStream
 
-class StateStreamingSpec extends AnyFunSuite {
-
-  val jsonFactory: JsonFactory = new JsonFactoryBuilder().build()
+class StateStreamingSpec extends AnyFunSuite with TestUtils {
 
   test("Init") {
     assertResult(State.BuildingObject(ObjectDecision.Build, State.Init))(State.Init.nextState(Decider.Build, ValuedJsonToken.StartObject))
@@ -181,19 +178,11 @@ class StateStreamingSpec extends AnyFunSuite {
 
   test("same as json parser") {
     import io.circe.parser._
-    val string = {
-      val in = scala.io.Source.fromResource("example.json")
-      try {
-        in.mkString
-      } finally {
-        in.close()
-      }
-    }
-    val native: Json = parse(string).getOrElse(throw new Exception("invalid json"))
+    val native: Json = parse(exampleJson).getOrElse(throw new Exception("invalid json"))
     val streamed: Chunk[(Path, Json)] = {
       Unsafe.unsafe { implicit unsafe =>
         Runtime.default.unsafe.run {
-          ZioMethods.toJsons(Decider.Build, ZioMethods.stream(jsonFactory.createParser(string))).runCollect
+          ZioMethods.toJsons(Decider.Build, ZioMethods.stream(jsonFactory.createParser(exampleJson))).runCollect
         }.getOrThrow()
       }
     }

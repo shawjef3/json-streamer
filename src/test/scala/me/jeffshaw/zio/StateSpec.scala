@@ -17,7 +17,7 @@ class StateSpec extends AnyFunSuite {
   }
 
   test("Array Stream") {
-    val state = State.BuildingArray(ObjectDecision.Stream, State.Init)
+    val state = State.BuildingArray(ObjectDecision.Emit, State.Init)
 
     assertResult(Path.root.index(0))(state.path)
 
@@ -32,7 +32,7 @@ class StateSpec extends AnyFunSuite {
   }
 
   test("Array Stream with inner Build") {
-    val state = State.BuildingArray(ObjectDecision.Stream, State.Init)
+    val state = State.BuildingArray(ObjectDecision.Emit, State.Init)
 
     assertResult(Path.root.index(0))(state.path)
 
@@ -75,7 +75,7 @@ class StateSpec extends AnyFunSuite {
   }
 
   test("Object Stream") {
-    val state = State.BuildingObject(ObjectDecision.Stream, State.Init)
+    val state = State.BuildingObject(ObjectDecision.Emit, State.Init)
 
     assertResult(Path.root)(state.path)
 
@@ -93,7 +93,7 @@ class StateSpec extends AnyFunSuite {
   }
 
   test("Object Stream with inner Build") {
-    val state = State.BuildingObject(ObjectDecision.Stream, State.Init)
+    val state = State.BuildingObject(ObjectDecision.Emit, State.Init)
 
     assertResult(Path.root)(state.path)
 

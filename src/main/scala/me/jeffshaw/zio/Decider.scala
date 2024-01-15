@@ -1,5 +1,8 @@
 package me.jeffshaw.zio
 
+/**
+ * Control how the token streamer handles each value.
+ */
 trait Decider {
   def value(path: Path): ValueDecision
   def `object`(path: Path): ObjectDecision
@@ -20,7 +23,7 @@ object Decider {
   object Stream extends Decider {
     override def value(path: Path): ValueDecision = ValueDecision.Keep
 
-    override def `object`(path: Path): ObjectDecision = ObjectDecision.Stream
+    override def `object`(path: Path): ObjectDecision = ObjectDecision.Emit
   }
 
   def streamUntilDepth(depth: Int): Decider = new Decider {
@@ -30,7 +33,7 @@ object Decider {
       if (path.depth >= depth) {
         ObjectDecision.Build
       } else {
-        ObjectDecision.Stream
+        ObjectDecision.Emit
       }
     }
   }

@@ -64,7 +64,7 @@ object State {
       token match {
         case ValuedJsonToken.EndObject =>
           decision match {
-            case ObjectDecision.Ignore | ObjectDecision.Stream =>
+            case ObjectDecision.Ignore | ObjectDecision.Emit =>
               outerState match {
                 case outerState: ExpectingObjectValue =>
                   outerState.objectBuilder
@@ -101,7 +101,7 @@ object State {
       decision match {
         case ValueDecision.Keep =>
           this.decision match {
-            case ObjectDecision.Stream =>
+            case ObjectDecision.Emit =>
               Emit(path.field(field._1), field._2, this)
             case ObjectDecision.Build =>
               objectBuilder += field
@@ -161,7 +161,7 @@ object State {
       token match {
         case ValuedJsonToken.EndArray =>
           decision match {
-            case ObjectDecision.Ignore | ObjectDecision.Stream =>
+            case ObjectDecision.Ignore | ObjectDecision.Emit =>
               outerState match {
                 case outerState: ExpectingObjectValue =>
                   outerState.objectBuilder
@@ -203,7 +203,7 @@ object State {
       decision match {
         case ValueDecision.Keep =>
           this.decision match {
-            case ObjectDecision.Stream | ObjectDecision.Ignore =>
+            case ObjectDecision.Emit | ObjectDecision.Ignore =>
               val next = Emit(path, value, this)
               index += 1
               next

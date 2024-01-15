@@ -25,23 +25,27 @@ trait MethodUtils {
     }
   }
 
+  def getParser(tokens: LazyList[String]): JsonParser = {
+    jsonFactory.createParser(getInputStream(tokens))
+  }
+
   def serialObjects: JsonParser = {
-    jsonFactory.createParser(getInputStream(LazyList.fill(objectCount)("{}")))
+    getParser(LazyList.fill(objectCount)("{}"))
   }
 
   def embeddedObjects: JsonParser = {
     val head = "{\"a\":"
     val middle = "0"
     val tail = "}"
-    jsonFactory.createParser(getInputStream(LazyList.fill(objectCount)(head) ++ LazyList(middle) ++ LazyList.fill(objectCount)(tail)))
+    getParser(LazyList.fill(objectCount)(head) ++ LazyList(middle) ++ LazyList.fill(objectCount)(tail))
   }
 
   def serialArrays: JsonParser = {
-    jsonFactory.createParser(getInputStream(LazyList.fill(objectCount)("[]")))
+    getParser(LazyList.fill(objectCount)("[]"))
   }
 
   def embeddedArrays: JsonParser = {
-    jsonFactory.createParser(getInputStream(LazyList.fill(objectCount)("[") ++ LazyList.fill(objectCount)("]")))
+    getParser(LazyList.fill(objectCount)("[") ++ LazyList.fill(objectCount)("]"))
   }
 
 }

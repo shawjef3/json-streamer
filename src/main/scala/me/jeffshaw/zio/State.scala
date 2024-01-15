@@ -1,6 +1,6 @@
 package me.jeffshaw.zio
 
-import org.json4s._
+import io.circe.Json
 
 sealed trait State {
   def nextState(decider: Decider, token: ValuedJsonToken): State
@@ -33,7 +33,7 @@ object State {
 
   case class Emit(
     override val path: Path,
-    value: JValue,
+    value: Json,
     outerState: State
   ) extends InnerState {
     override def nextState(
@@ -54,8 +54,8 @@ object State {
   case class BuildingObject(
     decision: ObjectDecision,
     override val outerState: State
-  ) extends Builder[JField] {
-    val objectBuilder = if (decision == ObjectDecision.Build) List.newBuilder[JField] else null
+  ) extends Builder[(String, Json)] {
+    val objectBuilder = if (decision == ObjectDecision.Build) Vector.newBuilder[(String, Json)] else null
 
     override def nextState(decider: Decider, token: ValuedJsonToken): State = {
       token match {
@@ -74,7 +74,7 @@ object State {
                   throw new IllegalStateException(s"Unexpected state $state")
               }
             case ObjectDecision.Build =>
-              val result = JObject(objectBuilder.result())
+              val result = Json.fromFields(objectBuilder.result())
               outerState match {
                 case outerState: ExpectingObjectValue =>
                   outerState.withValue(result, decider.value(outerState.path))
@@ -94,7 +94,7 @@ object State {
       }
     }
 
-    override def withValue(field: JField, decision: ValueDecision): State = {
+    override def withValue(field: (String, Json), decision: ValueDecision): State = {
       decision match {
         case ValueDecision.Keep =>
           this.decision match {
@@ -115,8 +115,8 @@ object State {
   case class ExpectingObjectValue(
     fieldName: String,
     objectBuilder: BuildingObject
-  ) extends Builder[JValue] {
-    override def withValue(value: JValue, decision: ValueDecision): State = {
+  ) extends Builder[Json] {
+    override def withValue(value: Json, decision: ValueDecision): State = {
       objectBuilder.withValue(fieldName -> value, decision)
     }
 
@@ -127,7 +127,7 @@ object State {
         case ValuedJsonToken.StartObject =>
           BuildingObject(decider.`object`(path), this)
         case value: ValuedJsonToken.ValuedJsonTokenValue =>
-          withValue(value.asJValue, decider.value(path))
+          withValue(value.asCirce, decider.value(path))
         case _ =>
           throw new IllegalArgumentException(s"Unexpected token $token")
       }
@@ -145,9 +145,9 @@ object State {
   case class BuildingArray(
     decision: ObjectDecision,
     override val outerState: State
-  ) extends Builder[JValue] {
+  ) extends Builder[Json] {
     var index: Long = 0
-    val arrayBuilder = if (decision == ObjectDecision.Build) List.newBuilder[JValue] else null
+    val arrayBuilder = if (decision == ObjectDecision.Build) Vector.newBuilder[Json] else null
 
     override def path: Path = {
       super.path.index(index)
@@ -170,7 +170,7 @@ object State {
                   throw new IllegalStateException(s"Unexpected state $state")
               }
             case ObjectDecision.Build =>
-              val result = JArray(arrayBuilder.result())
+              val result = Json.fromValues(arrayBuilder.result())
               outerState match {
                 case outerState: ExpectingObjectValue =>
                   outerState.withValue(result, decider.value(path.tail))
@@ -189,13 +189,13 @@ object State {
         case ValuedJsonToken.StartObject =>
           BuildingObject(decider.`object`(path), this)
         case value: ValuedJsonToken.ValuedJsonTokenValue =>
-           withValue(value.asJValue, decider.value(path))
+           withValue(value.asCirce, decider.value(path))
         case _ =>
           throw new IllegalArgumentException(s"Unexpected token $token")
       }
     }
 
-    override def withValue(value: JValue, decision: ValueDecision): State = {
+    override def withValue(value: Json, decision: ValueDecision): State = {
       decision match {
         case ValueDecision.Keep =>
           this.decision match {

@@ -34,7 +34,7 @@ class ValuedJsonTokenSpec extends AnyFunSuite {
     Unsafe.unsafe { implicit unsafe =>
       val js =
         Runtime.default.unsafe.run {
-          ValuedJsonToken.stream(p).runCollect
+          ZioMethods.stream(p).runCollect
         }
       assert(js.isSuccess)
       assertResult(Chunk(ValuedJsonToken.StartObject, ValuedJsonToken.EndObject))(js.getOrThrowFiberFailure())
@@ -46,7 +46,7 @@ class ValuedJsonTokenSpec extends AnyFunSuite {
     Unsafe.unsafe { implicit unsafe =>
       val js =
         Runtime.default.unsafe.run {
-          ValuedJsonToken.stream(p).runCount
+          ZioMethods.stream(p).runCount
         }
       assert(js.isSuccess)
       assertResult(objectCount * 2)(js.getOrThrowFiberFailure())
@@ -62,7 +62,7 @@ class ValuedJsonTokenSpec extends AnyFunSuite {
     Unsafe.unsafe { implicit unsafe =>
       val js =
         Runtime.default.unsafe.run {
-          ValuedJsonToken.stream(p).runCount
+          ZioMethods.stream(p).runCount
         }
       assert(js.isSuccess)
       assertResult(3 * objectCount + 1)(js.getOrThrowFiberFailure())
@@ -75,7 +75,7 @@ class ValuedJsonTokenSpec extends AnyFunSuite {
     Unsafe.unsafe { implicit unsafe =>
       val js =
         Runtime.default.unsafe.run {
-          ValuedJsonToken.stream(p).runCount
+          ZioMethods.stream(p).runCount
         }
       assert(js.isSuccess)
       assertResult(objectCount * 2)(js.getOrThrowFiberFailure())
@@ -89,7 +89,7 @@ class ValuedJsonTokenSpec extends AnyFunSuite {
     Unsafe.unsafe { implicit unsafe =>
       val js =
         Runtime.default.unsafe.run {
-          ValuedJsonToken.stream(p).runCount
+          ZioMethods.stream(p).runCount
         }
       assert(js.isSuccess)
       assertResult(objectCount * 2)(js.getOrThrowFiberFailure())

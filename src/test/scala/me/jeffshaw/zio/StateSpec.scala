@@ -1,6 +1,6 @@
 package me.jeffshaw.zio
 
-import org.json4s.{JArray, JInt, JObject}
+import io.circe.Json
 import org.scalatest.funsuite.AnyFunSuite
 
 class StateSpec extends AnyFunSuite {
@@ -25,7 +25,7 @@ class StateSpec extends AnyFunSuite {
 
     assertResult(Path.root.index(0))(afterJInt.path)
     assertResult(Path.root.index(1))(state.path)
-    assertResult(State.Emit(Path.root.index(0), JInt(0), state))(afterJInt)
+    assertResult(State.Emit(Path.root.index(0), Json.fromInt(0), state))(afterJInt)
 
     val afterEnd = afterJInt.nextState(Decider.Build, ValuedJsonToken.EndArray)
     assertResult(State.Init)(afterEnd)
@@ -47,10 +47,10 @@ class StateSpec extends AnyFunSuite {
     assertResult(afterArrayStart)(afterFirstInt)
 
     val afterInnerEnd = afterFirstInt.nextState(Decider.Build, ValuedJsonToken.EndArray)
-    assertResult(State.Emit(Path.root.index(0), JArray(List(JInt(0))), state))(afterInnerEnd)
+    assertResult(State.Emit(Path.root.index(0), Json.arr(Json.fromInt(0)), state))(afterInnerEnd)
 
     val afterSecondElement = afterInnerEnd.nextState(Decider.Stream, ValuedJsonToken.JInt(1))
-    assertResult(State.Emit(Path.root.index(1), JInt(1), state))(afterSecondElement)
+    assertResult(State.Emit(Path.root.index(1), Json.fromInt(1), state))(afterSecondElement)
 
     val afterOuterEnd = afterInnerEnd.nextState(Decider.Stream, ValuedJsonToken.EndArray)
     assertResult(State.Init)(afterOuterEnd)
@@ -68,10 +68,10 @@ class StateSpec extends AnyFunSuite {
     val afterJInt = afterJField.nextState(Decider.Build, ValuedJsonToken.JInt(0))
     assertResult(Path.root)(afterJInt.path)
     assertResult(state)(afterJInt)
-    assertResult(List("a" -> JInt(0)))(state.objectBuilder.result())
+    assertResult(List("a" -> Json.fromInt(0)))(state.objectBuilder.result())
 
     val afterEnd = afterJInt.nextState(Decider.Build, ValuedJsonToken.EndObject)
-    assertResult(State.Emit(Path.root, JObject("a" -> JInt(0)), State.Init))(afterEnd)
+    assertResult(State.Emit(Path.root, Json.obj("a" -> Json.fromInt(0)), State.Init))(afterEnd)
   }
 
   test("Object Stream") {
@@ -85,7 +85,7 @@ class StateSpec extends AnyFunSuite {
 
     val afterJInt = afterJField.nextState(Decider.Stream, ValuedJsonToken.JInt(0))
     assertResult(Path.root.field("a"))(afterJInt.path)
-    assertResult(State.Emit(Path.root.field("a"), JInt(0), state))(afterJInt)
+    assertResult(State.Emit(Path.root.field("a"), Json.fromInt(0), state))(afterJInt)
 
     val afterEmit = afterJInt.nextState(Decider.Stream, ValuedJsonToken.EndObject)
 
@@ -115,7 +115,7 @@ class StateSpec extends AnyFunSuite {
 
     val afterInnerEnd = afterJInt.nextState(Decider.Build, ValuedJsonToken.EndObject)
     assertResult(Path.root.field("a"))(afterInnerEnd.path)
-    assertResult(State.Emit(Path.root.field("a"), JObject("b" -> JInt(0)), state))(afterInnerEnd)
+    assertResult(State.Emit(Path.root.field("a"), Json.obj("b" -> Json.fromInt(0)), state))(afterInnerEnd)
 
     val afterOuterEnd = afterInnerEnd.nextState(Decider.Stream, ValuedJsonToken.EndObject)
 

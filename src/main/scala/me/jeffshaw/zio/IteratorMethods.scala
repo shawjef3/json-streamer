@@ -1,6 +1,7 @@
 package me.jeffshaw.zio
 
 import com.fasterxml.jackson.core.JsonParser
+import io.circe.Json
 
 object IteratorMethods {
 
@@ -9,7 +10,7 @@ object IteratorMethods {
       ValuedJsonToken(p, token)
     }
 
-  def toJValues(decider: Decider, tokens: Iterator[ValuedJsonToken]): Iterator[(Path, org.json4s.JValue)] = {
+  def toJValues(decider: Decider, tokens: Iterator[ValuedJsonToken]): Iterator[(Path, Json)] = {
     tokens.scanLeft[State](State.Init) {
       case (state, token) =>
         state.nextState(decider, token)

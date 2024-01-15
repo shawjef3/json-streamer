@@ -1,10 +1,10 @@
 package me.jeffshaw.zio
 
 import com.fasterxml.jackson.core.{JsonParser, JsonToken}
-import org.{json4s => j}
+import io.circe._
 
 /**
- * `ValuedJsonToken` is an amalgam of [[JsonToken]] and [[j.JValue]] containing the values
+ * `ValuedJsonToken` is an amalgam of [[JsonToken]] and [[Json]] containing the values
  * appropriate for a stateful, streaming parser.
  */
 sealed trait ValuedJsonToken
@@ -17,57 +17,57 @@ object ValuedJsonToken {
   case class FieldName(name: String) extends ValuedJsonToken
 
   sealed trait ValuedJsonTokenValue extends ValuedJsonToken {
-    def asJValue: j.JValue
+    def asCirce: Json
   }
 
   case class JString(value: String) extends ValuedJsonTokenValue {
-    override val asJValue: j.JValue = {
-      j.JString(value)
+    override val asCirce: Json = {
+      Json.fromString(value)
     }
   }
   case class JInt(value: Int) extends ValuedJsonTokenValue {
-    override val asJValue: j.JValue = {
-      j.JInt(value)
+    override val asCirce: Json = {
+      Json.fromInt(value)
     }
   }
   case class JLong(value: Long) extends ValuedJsonTokenValue {
-    override val asJValue: j.JValue = {
-      j.JLong(value)
+    override val asCirce: Json = {
+      Json.fromLong(value)
     }
   }
   case class JBigInt(value: BigInt) extends ValuedJsonTokenValue {
-    override val asJValue: j.JValue = {
-      j.JInt(value)
+    override val asCirce: Json = {
+      Json.fromBigInt(value)
     }
   }
   case class JFloat(value: Float) extends ValuedJsonTokenValue {
-    override val asJValue: j.JValue = {
-      j.JDouble(value.toDouble)
+    override val asCirce: Json = {
+      Json.fromFloat(value).get
     }
   }
   case class JDouble(value: Double) extends ValuedJsonTokenValue {
-    override val asJValue: j.JValue = {
-      j.JDouble(value)
+    override val asCirce: Json = {
+      Json.fromDouble(value).get
     }
   }
   case class JBigDecimal(value: BigDecimal) extends ValuedJsonTokenValue {
-    override val asJValue: j.JValue = {
-      j.JDecimal(value)
+    override val asCirce: Json = {
+      Json.fromBigDecimal(value)
     }
   }
   case object JNull extends ValuedJsonTokenValue {
-    override def asJValue: j.JValue = {
-      j.JNull
+    override def asCirce: Json = {
+      Json.Null
     }
   }
   case object JFalse extends ValuedJsonTokenValue {
-    override def asJValue: j.JValue = {
-      j.JBool.False
+    override def asCirce: Json = {
+      Json.False
     }
   }
   case object JTrue extends ValuedJsonTokenValue {
-    override def asJValue: j.JValue = {
-      j.JBool.True \ "true"
+    override def asCirce: Json = {
+      Json.True
     }
   }
 

@@ -1,8 +1,8 @@
 package me.jeffshaw.zio
 
 import com.fasterxml.jackson.core.JsonParser
+import io.circe.Json
 import java.io.IOException
-import org.json4s.JValue
 import zio.ZIO
 import zio.stream.ZStream
 
@@ -40,8 +40,8 @@ object ZioMethods {
     ZStream.repeatZIOOption(nextZio(p))
   }
 
-  def toJValues[R, E](decider: Decider, tokens: ZStream[R, E, ValuedJsonToken]): ZStream[R, E, (Path, JValue)] = {
-    tokens.mapAccum[State, Option[(Path, JValue)]](State.Init) {
+  def toJValues[R, E](decider: Decider, tokens: ZStream[R, E, ValuedJsonToken]): ZStream[R, E, (Path, Json)] = {
+    tokens.mapAccum[State, Option[(Path, Json)]](State.Init) {
       case (state, token) =>
         val nextState = state.nextState(decider, token)
         nextState match {

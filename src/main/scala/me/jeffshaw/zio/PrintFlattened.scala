@@ -1,10 +1,9 @@
 package me.jeffshaw.zio
 
 import com.fasterxml.jackson.core.JsonFactory
-import java.io.{IOException, InputStream}
 import java.nio.file.{Files, Paths}
 import zio.stream.ZStream
-import zio.{Console, NonEmptyChunk, Scope, ZIO, ZIOAppArgs, ZIOAppDefault}
+import zio.{Console, Scope, ZIO, ZIOAppArgs, ZIOAppDefault}
 
 object PrintFlattened extends ZIOAppDefault {
 
@@ -13,17 +12,18 @@ object PrintFlattened extends ZIOAppDefault {
   override def run: ZIO[ZIOAppArgs with Scope, Any, Any] =
     for {
       args <- ZIOAppArgs.getArgs
-      ins: ZStream[Scope, IOException, InputStream] =
-        NonEmptyChunk.fromChunk(args)
-          .fold[ZStream[Scope, IOException, InputStream]](
-            ZStream.fromZIO(ZIO.succeed(System.in))
-          )(nonEmptyChunk => ZStream.fromChunk(nonEmptyChunk).mapZIO(arg => ZIO.fromAutoCloseable(ZIO.attemptBlockingIO(Files.newInputStream(Paths.get(arg))))))
-      _ <-
-        ins.foreach { in =>
-          ValuedJsonToken.toJValues(Decider.Stream, ValuedJsonToken.stream(factory.createParser(in)))
-            .foreach { case (path, value) =>
-                Console.printLine(s"$path = $value")
-            }
+      result <-
+        ZStream.fromChunk(args).foreach { arg =>
+          ZIO.scoped {
+            for {
+              in <- ZIO.fromAutoCloseable(ZIO.attemptBlockingIO(Files.newInputStream(Paths.get(arg))))
+              parser <- ZIO.fromAutoCloseable(ZIO.attemptBlockingIO(factory.createParser(in)))
+              result <- ZioMethods.toJValues(Decider.Stream, ZioMethods.stream(parser))
+                .foreach { case (path, value) =>
+                  Console.printLine(s"$path = $value")
+                }
+            } yield result
+          }
         }
-    } yield ()
+    } yield result
 }

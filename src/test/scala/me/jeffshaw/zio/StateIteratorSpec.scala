@@ -6,18 +6,18 @@ import org.scalatest.funsuite.AnyFunSuite
 class StateIteratorSpec extends AnyFunSuite with TestUtils {
 
   test("Init") {
-    assertResult(State.BuildingObject(ObjectDecision.Build, State.Init))(State.Init.nextState(Decider.Build, ValuedJsonToken.StartObject))
+    assertResult(State.BuildingObject(ObjectDecision.Build, State.Init))(State.Init.nextState(Decider.build, ValuedJsonToken.StartObject))
   }
 
   test("build trivial object") {
-    val js = IteratorMethods.toJsons(Decider.Build, Iterator(ValuedJsonToken.StartObject, ValuedJsonToken.EndObject)).toVector
+    val js = IteratorMethods.toJsons(Decider.build, Iterator(ValuedJsonToken.StartObject, ValuedJsonToken.EndObject)).toVector
     assertResult(Vector((Path.root, Json.obj())))(js)
   }
 
   test("build single value object") {
     val js =
       IteratorMethods.toJsons(
-        Decider.Build,
+        Decider.build,
         Iterator(
           ValuedJsonToken.StartObject,
           ValuedJsonToken.FieldName("hi"),
@@ -31,7 +31,7 @@ class StateIteratorSpec extends AnyFunSuite with TestUtils {
   test("build complex object") {
     val js =
       IteratorMethods.toJsons(
-          Decider.Build,
+          Decider.build,
           IteratorMethods.iterator(jsonFactory.createParser("""{"a":0,"b":[1],"c":{"d":2}}"""))
       ).toVector
     assertResult(Vector((Path.root, Json.obj("a" -> Json.fromInt(0), "b" -> Json.arr(Json.fromInt(1)), "c" -> Json.obj("d" -> Json.fromInt(2))))))(js)
@@ -40,7 +40,7 @@ class StateIteratorSpec extends AnyFunSuite with TestUtils {
   test("build two complex objects") {
     val js =
       IteratorMethods.toJsons(
-          Decider.Build,
+          Decider.build,
           IteratorMethods.iterator(jsonFactory.createParser("""{"a":0,"b":[1],"c":{"d":2}}{"a":0,"b":[1],"c":{"d":2}}"""))
         ).toVector
     assertResult(Vector.fill(2)((Path.root, Json.obj("a" -> Json.fromInt(0), "b" -> Json.arr(Json.fromInt(1)), "c" -> Json.obj("d" -> Json.fromInt(2))))))(js)
@@ -49,14 +49,14 @@ class StateIteratorSpec extends AnyFunSuite with TestUtils {
   test("stream trivial object") {
       val js =
         IteratorMethods
-          .toJsons(Decider.Stream, Iterator(ValuedJsonToken.StartObject, ValuedJsonToken.EndObject))
+          .toJsons(Decider.stream, Iterator(ValuedJsonToken.StartObject, ValuedJsonToken.EndObject))
           .toVector
       assertResult(Vector.empty)(js)
   }
 
   test("stream single value object") {
     val js =
-      IteratorMethods.toJsons(Decider.Stream, Iterator(ValuedJsonToken.StartObject, ValuedJsonToken.FieldName("hi"), ValuedJsonToken.JInt(3), ValuedJsonToken.EndObject)).toVector
+      IteratorMethods.toJsons(Decider.stream, Iterator(ValuedJsonToken.StartObject, ValuedJsonToken.FieldName("hi"), ValuedJsonToken.JInt(3), ValuedJsonToken.EndObject)).toVector
     assertResult(Vector((Path.root.field("hi"), Json.fromInt(3))))(js)
   }
 
@@ -74,31 +74,31 @@ class StateIteratorSpec extends AnyFunSuite with TestUtils {
 
   test("test trivial object") {
     val js =
-      IteratorMethods.toJsons(Decider.Ignore, Iterator(ValuedJsonToken.StartObject, ValuedJsonToken.EndObject)).toVector
+      IteratorMethods.toJsons(Decider.ignore, Iterator(ValuedJsonToken.StartObject, ValuedJsonToken.EndObject)).toVector
     assertResult(Vector.empty)(js)
   }
 
   test("test single value object") {
     val js =
-      IteratorMethods.toJsons(Decider.Ignore, Iterator(ValuedJsonToken.StartObject, ValuedJsonToken.FieldName("hi"), ValuedJsonToken.JInt(3), ValuedJsonToken.EndObject)).toVector
+      IteratorMethods.toJsons(Decider.ignore, Iterator(ValuedJsonToken.StartObject, ValuedJsonToken.FieldName("hi"), ValuedJsonToken.JInt(3), ValuedJsonToken.EndObject)).toVector
     assertResult(Vector.empty)(js)
   }
 
   test("single value array") {
     val js =
-      IteratorMethods.toJsons(Decider.Build, Iterator(ValuedJsonToken.StartArray, ValuedJsonToken.JInt(3), ValuedJsonToken.EndArray)).toVector
+      IteratorMethods.toJsons(Decider.build, Iterator(ValuedJsonToken.StartArray, ValuedJsonToken.JInt(3), ValuedJsonToken.EndArray)).toVector
     assertResult(Vector((Path.root, Json.arr(Json.fromInt(3)))))(js)
   }
 
   test("stream empty array") {
     val js =
-      IteratorMethods.toJsons(Decider.Stream, Iterator(ValuedJsonToken.StartArray, ValuedJsonToken.EndArray)).toVector
+      IteratorMethods.toJsons(Decider.stream, Iterator(ValuedJsonToken.StartArray, ValuedJsonToken.EndArray)).toVector
     assertResult(Vector.empty)(js)
   }
 
   test("stream single value array") {
     val js =
-      IteratorMethods.toJsons(Decider.Stream, Iterator(ValuedJsonToken.StartArray, ValuedJsonToken.JInt(3), ValuedJsonToken.EndArray)).toVector
+      IteratorMethods.toJsons(Decider.stream, Iterator(ValuedJsonToken.StartArray, ValuedJsonToken.JInt(3), ValuedJsonToken.EndArray)).toVector
     assertResult(Vector((Path.root.index(0), Json.fromInt(3))))(js)
   }
 
@@ -118,7 +118,7 @@ class StateIteratorSpec extends AnyFunSuite with TestUtils {
     import io.circe.parser._
     val native: Json = parse(exampleJson).getOrElse(throw new Exception("invalid json"))
     val iterated: Vector[(Path, Json)] =
-      IteratorMethods.toJsons(Decider.Build, IteratorMethods.iterator(jsonFactory.createParser(exampleJson))).toVector
+      IteratorMethods.toJsons(Decider.build, IteratorMethods.iterator(jsonFactory.createParser(exampleJson))).toVector
     assertResult(Vector(Path.root -> native))(iterated)
   }
 }

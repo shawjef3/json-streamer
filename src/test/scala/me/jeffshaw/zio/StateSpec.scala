@@ -10,7 +10,7 @@ class StateSpec extends AnyFunSuite {
 
     assertResult(Path.root.index(0))(state.path)
 
-    val afterJInt = state.nextState(Decider.Build, ValuedJsonToken.JInt(0))
+    val afterJInt = state.nextState(Decider.build, ValuedJsonToken.JInt(0))
 
     assertResult(Path.root.index(1))(afterJInt.path)
     assertResult(State.BuildingArray(ObjectDecision.Build, State.Init))(afterJInt)
@@ -21,13 +21,13 @@ class StateSpec extends AnyFunSuite {
 
     assertResult(Path.root.index(0))(state.path)
 
-    val afterJInt = state.nextState(Decider.Build, ValuedJsonToken.JInt(0))
+    val afterJInt = state.nextState(Decider.build, ValuedJsonToken.JInt(0))
 
     assertResult(Path.root.index(0))(afterJInt.path)
     assertResult(Path.root.index(1))(state.path)
     assertResult(State.Emit(Path.root.index(0), Json.fromInt(0), state))(afterJInt)
 
-    val afterEnd = afterJInt.nextState(Decider.Build, ValuedJsonToken.EndArray)
+    val afterEnd = afterJInt.nextState(Decider.build, ValuedJsonToken.EndArray)
     assertResult(State.Init)(afterEnd)
   }
 
@@ -36,23 +36,23 @@ class StateSpec extends AnyFunSuite {
 
     assertResult(Path.root.index(0))(state.path)
 
-    val afterArrayStart = state.nextState(Decider.Build, ValuedJsonToken.StartArray)
+    val afterArrayStart = state.nextState(Decider.build, ValuedJsonToken.StartArray)
 
     assertResult(Path.root.index(0).index(0))(afterArrayStart.path)
     assertResult(Path.root.index(0))(state.path)
     assertResult(State.BuildingArray(ObjectDecision.Build, state))(afterArrayStart)
 
-    val afterFirstInt = afterArrayStart.nextState(Decider.Build, ValuedJsonToken.JInt(0))
+    val afterFirstInt = afterArrayStart.nextState(Decider.build, ValuedJsonToken.JInt(0))
     assertResult(Path.root.index(0).index(1))(afterFirstInt.path)
     assertResult(afterArrayStart)(afterFirstInt)
 
-    val afterInnerEnd = afterFirstInt.nextState(Decider.Build, ValuedJsonToken.EndArray)
+    val afterInnerEnd = afterFirstInt.nextState(Decider.build, ValuedJsonToken.EndArray)
     assertResult(State.Emit(Path.root.index(0), Json.arr(Json.fromInt(0)), state))(afterInnerEnd)
 
-    val afterSecondElement = afterInnerEnd.nextState(Decider.Stream, ValuedJsonToken.JInt(1))
+    val afterSecondElement = afterInnerEnd.nextState(Decider.stream, ValuedJsonToken.JInt(1))
     assertResult(State.Emit(Path.root.index(1), Json.fromInt(1), state))(afterSecondElement)
 
-    val afterOuterEnd = afterInnerEnd.nextState(Decider.Stream, ValuedJsonToken.EndArray)
+    val afterOuterEnd = afterInnerEnd.nextState(Decider.stream, ValuedJsonToken.EndArray)
     assertResult(State.Init)(afterOuterEnd)
   }
 
@@ -61,16 +61,16 @@ class StateSpec extends AnyFunSuite {
 
     assertResult(Path.root)(state.path)
 
-    val afterJField = state.nextState(Decider.Build, ValuedJsonToken.FieldName("a"))
+    val afterJField = state.nextState(Decider.build, ValuedJsonToken.FieldName("a"))
     assertResult(Path.root.field("a"))(afterJField.path)
     assertResult(State.ExpectingObjectValue("a", state))(afterJField)
 
-    val afterJInt = afterJField.nextState(Decider.Build, ValuedJsonToken.JInt(0))
+    val afterJInt = afterJField.nextState(Decider.build, ValuedJsonToken.JInt(0))
     assertResult(Path.root)(afterJInt.path)
     assertResult(state)(afterJInt)
     assertResult(List("a" -> Json.fromInt(0)))(state.objectBuilder.result())
 
-    val afterEnd = afterJInt.nextState(Decider.Build, ValuedJsonToken.EndObject)
+    val afterEnd = afterJInt.nextState(Decider.build, ValuedJsonToken.EndObject)
     assertResult(State.Emit(Path.root, Json.obj("a" -> Json.fromInt(0)), State.Init))(afterEnd)
   }
 
@@ -79,15 +79,15 @@ class StateSpec extends AnyFunSuite {
 
     assertResult(Path.root)(state.path)
 
-    val afterJField = state.nextState(Decider.Stream, ValuedJsonToken.FieldName("a"))
+    val afterJField = state.nextState(Decider.stream, ValuedJsonToken.FieldName("a"))
     assertResult(Path.root.field("a"))(afterJField.path)
     assertResult(State.ExpectingObjectValue("a", state))(afterJField)
 
-    val afterJInt = afterJField.nextState(Decider.Stream, ValuedJsonToken.JInt(0))
+    val afterJInt = afterJField.nextState(Decider.stream, ValuedJsonToken.JInt(0))
     assertResult(Path.root.field("a"))(afterJInt.path)
     assertResult(State.Emit(Path.root.field("a"), Json.fromInt(0), state))(afterJInt)
 
-    val afterEmit = afterJInt.nextState(Decider.Stream, ValuedJsonToken.EndObject)
+    val afterEmit = afterJInt.nextState(Decider.stream, ValuedJsonToken.EndObject)
 
     assertResult(State.Init)(afterEmit)
   }
@@ -97,27 +97,27 @@ class StateSpec extends AnyFunSuite {
 
     assertResult(Path.root)(state.path)
 
-    val afterJField = state.nextState(Decider.Stream, ValuedJsonToken.FieldName("a"))
+    val afterJField = state.nextState(Decider.stream, ValuedJsonToken.FieldName("a"))
     assertResult(Path.root.field("a"))(afterJField.path)
     assertResult(State.ExpectingObjectValue("a", state))(afterJField)
 
-    val afterInnerObjectStart = afterJField.nextState(Decider.Build, ValuedJsonToken.StartObject)
+    val afterInnerObjectStart = afterJField.nextState(Decider.build, ValuedJsonToken.StartObject)
     assertResult(Path.root.field("a"))(afterInnerObjectStart.path)
     assertResult(State.BuildingObject(ObjectDecision.Build, afterJField))(afterInnerObjectStart)
 
-    val afterInnerJField = afterInnerObjectStart.nextState(Decider.Build, ValuedJsonToken.FieldName("b"))
+    val afterInnerJField = afterInnerObjectStart.nextState(Decider.build, ValuedJsonToken.FieldName("b"))
     assertResult(Path.root.field("a").field("b"))(afterInnerJField.path)
     assertResult(State.ExpectingObjectValue("b", afterInnerObjectStart.asInstanceOf[State.BuildingObject]))(afterInnerJField)
 
-    val afterJInt = afterInnerJField.nextState(Decider.Build, ValuedJsonToken.JInt(0))
+    val afterJInt = afterInnerJField.nextState(Decider.build, ValuedJsonToken.JInt(0))
     assertResult(Path.root.field("a"))(afterJInt.path)
     assertResult(afterInnerObjectStart)(afterJInt)
 
-    val afterInnerEnd = afterJInt.nextState(Decider.Build, ValuedJsonToken.EndObject)
+    val afterInnerEnd = afterJInt.nextState(Decider.build, ValuedJsonToken.EndObject)
     assertResult(Path.root.field("a"))(afterInnerEnd.path)
     assertResult(State.Emit(Path.root.field("a"), Json.obj("b" -> Json.fromInt(0)), state))(afterInnerEnd)
 
-    val afterOuterEnd = afterInnerEnd.nextState(Decider.Stream, ValuedJsonToken.EndObject)
+    val afterOuterEnd = afterInnerEnd.nextState(Decider.stream, ValuedJsonToken.EndObject)
 
     assertResult(State.Init)(afterOuterEnd)
   }

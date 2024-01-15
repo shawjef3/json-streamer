@@ -18,7 +18,7 @@ object PrintFlattened extends ZIOAppDefault {
             for {
               in <- ZIO.fromAutoCloseable(ZIO.attemptBlockingIO(Files.newInputStream(Paths.get(arg))))
               parser <- ZIO.fromAutoCloseable(ZIO.attemptBlockingIO(factory.createParser(in)))
-              result <- ZioMethods.toJsons(Decider.Stream, ZioMethods.stream(parser))
+              result <- ZioMethods.toJsons(Decider.stream, ZioMethods.stream(parser))
                 .foreach { case (path, value) =>
                   Console.printLine(s"$path = $value")
                 }

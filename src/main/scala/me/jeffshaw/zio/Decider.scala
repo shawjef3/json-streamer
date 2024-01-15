@@ -9,50 +9,52 @@ trait Decider {
 }
 
 object Decider {
-  object Build extends Decider {
-    override def value(path: Path): ValueDecision = ValueDecision.Keep
-    override def `object`(path: Path): ObjectDecision = ObjectDecision.Build
+  def apply(
+    v: Path => ValueDecision,
+    o: Path => ObjectDecision
+  ): Decider = new Decider {
+    override def value(path: Path): ValueDecision = v(path)
+    override def `object`(path: Path): ObjectDecision = o(path)
   }
 
-  object Ignore extends Decider {
-    override def value(path: Path): ValueDecision = ValueDecision.Ignore
+  val build: Decider =
+    Decider(Function.const(ValueDecision.Keep), Function.const(ObjectDecision.Build))
 
-    override def `object`(path: Path): ObjectDecision = ObjectDecision.Ignore
-  }
+  val ignore: Decider =
+    Decider(Function.const(ValueDecision.Ignore), Function.const(ObjectDecision.Ignore))
 
-  object Stream extends Decider {
-    override def value(path: Path): ValueDecision = ValueDecision.Keep
+  val stream: Decider =
+    Decider(Function.const(ValueDecision.Keep), Function.const(ObjectDecision.Emit))
 
-    override def `object`(path: Path): ObjectDecision = ObjectDecision.Emit
-  }
-
-  def streamUntilDepth(depth: Int): Decider = new Decider {
-    override def value(path: Path): ValueDecision = ValueDecision.Keep
-
-    override def `object`(path: Path): ObjectDecision = {
-      if (path.depth >= depth) {
-        ObjectDecision.Build
-      } else {
-        ObjectDecision.Emit
+  def streamUntilDepth(depth: Int): Decider = {
+    Decider(
+      Function.const(ValueDecision.Keep),
+      path => {
+        if (path.depth >= depth) {
+          ObjectDecision.Build
+        } else {
+          ObjectDecision.Emit
+        }
       }
-    }
+    )
   }
 
-  def ignoreUntilDepth(depth: Int): Decider = new Decider {
-    override def value(path: Path): ValueDecision = {
-      if (path.depth >= depth) {
-        ValueDecision.Keep
-      } else {
-        ValueDecision.Ignore
+  def ignoreUntilDepth(depth: Int): Decider = {
+    Decider(
+      path => {
+        if (path.depth >= depth) {
+          ValueDecision.Keep
+        } else {
+          ValueDecision.Ignore
+        }
+      },
+      path => {
+        if (path.depth >= depth) {
+          ObjectDecision.Build
+        } else {
+          ObjectDecision.Ignore
+        }
       }
-    }
-
-    override def `object`(path: Path): ObjectDecision = {
-      if (path.depth >= depth) {
-        ObjectDecision.Build
-      } else {
-        ObjectDecision.Ignore
-      }
-    }
+    )
   }
 }

@@ -1,7 +1,5 @@
 package me.jeffshaw.zio
 
-import scala.collection.mutable
-
 case class Path(path: List[Path.Elem]) {
   lazy val depth: Int = path.size
 

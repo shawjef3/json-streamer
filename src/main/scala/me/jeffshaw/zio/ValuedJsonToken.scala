@@ -32,7 +32,7 @@ object ValuedJsonToken {
   }
   case class JLong(value: Long) extends ValuedJsonTokenValue {
     override val asJValue: j.JValue = {
-      j.JInt(value)
+      j.JLong(value)
     }
   }
   case class JBigInt(value: BigInt) extends ValuedJsonTokenValue {

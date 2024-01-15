@@ -1,4 +1,4 @@
-package me.jeffshaw.zio
+package me.jeffshaw.json
 
 /**
  * Control how the token streamer handles each value.

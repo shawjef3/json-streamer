@@ -1,10 +1,10 @@
-package me.jeffshaw.zio
+package me.jeffshaw.json
 
 import io.circe.Json
 import scala.collection.mutable
 
 sealed trait State {
-  def nextState(decider: Decider, token: ValuedJsonToken): State
+  def nextState(decider: Decider, token: Token): State
 
   def path: Path
 }
@@ -13,11 +13,11 @@ object State {
   case object Init extends State {
     override def path: Path = Path.root
 
-    override def nextState(decider: Decider, token: ValuedJsonToken): State = {
+    override def nextState(decider: Decider, token: Token): State = {
       token match {
-        case ValuedJsonToken.StartObject =>
+        case Token.StartObject =>
           BuildingObject(decider.`object`(path), Init)
-        case ValuedJsonToken.StartArray =>
+        case Token.StartArray =>
           BuildingArray(decider.`object`(path), Init)
         case _ =>
           throw new IllegalStateException(s"Unexpected token $token")
@@ -39,7 +39,7 @@ object State {
   ) extends InnerState {
     override def nextState(
       decider: Decider,
-      token: ValuedJsonToken
+      token: Token
     ): State = {
       outerState.nextState(decider, token)
     }
@@ -57,12 +57,12 @@ object State {
     override val outerState: State
   ) extends Builder[(String, Json)] {
     // visible for testing
-    private[zio] val objectBuilder: mutable.Builder[(String, Json), Vector[(String, Json)]] =
+    private[json] val objectBuilder: mutable.Builder[(String, Json), Vector[(String, Json)]] =
       if (decision == ObjectDecision.Build) Vector.newBuilder else null
 
-    override def nextState(decider: Decider, token: ValuedJsonToken): State = {
+    override def nextState(decider: Decider, token: Token): State = {
       token match {
-        case ValuedJsonToken.EndObject =>
+        case Token.EndObject =>
           decision match {
             case ObjectDecision.Ignore | ObjectDecision.Emit =>
               outerState match {
@@ -90,7 +90,7 @@ object State {
                   throw new IllegalStateException(s"Unexpected state $state")
               }
           }
-        case ValuedJsonToken.FieldName(name) =>
+        case Token.FieldName(name) =>
           ExpectingObjectValue(name, this)
         case _ =>
           throw new IllegalArgumentException(s"Unexpected token $token")
@@ -123,13 +123,13 @@ object State {
       objectBuilder.withValue(fieldName -> value, decision)
     }
 
-    override def nextState(decider: Decider, token: ValuedJsonToken): State = {
+    override def nextState(decider: Decider, token: Token): State = {
       token match {
-        case ValuedJsonToken.StartArray =>
+        case Token.StartArray =>
           BuildingArray(decider.`object`(path), this)
-        case ValuedJsonToken.StartObject =>
+        case Token.StartObject =>
           BuildingObject(decider.`object`(path), this)
-        case value: ValuedJsonToken.ValuedJsonTokenValue =>
+        case value: Token.TokenValue =>
           withValue(value.asCirce, decider.value(path))
         case _ =>
           throw new IllegalArgumentException(s"Unexpected token $token")
@@ -157,9 +157,9 @@ object State {
       super.path.index(index)
     }
 
-    override def nextState(decider: Decider, token: ValuedJsonToken): State = {
+    override def nextState(decider: Decider, token: Token): State = {
       token match {
-        case ValuedJsonToken.EndArray =>
+        case Token.EndArray =>
           decision match {
             case ObjectDecision.Ignore | ObjectDecision.Emit =>
               outerState match {
@@ -187,12 +187,12 @@ object State {
                   throw new IllegalStateException(s"Unexpected state $state")
               }
           }
-        case ValuedJsonToken.StartArray =>
+        case Token.StartArray =>
           val innerArrayDecision: ObjectDecision = decider.`object`(path)
           BuildingArray(innerArrayDecision, this)
-        case ValuedJsonToken.StartObject =>
+        case Token.StartObject =>
           BuildingObject(decider.`object`(path), this)
-        case value: ValuedJsonToken.ValuedJsonTokenValue =>
+        case value: Token.TokenValue =>
            withValue(value.asCirce, decider.value(path))
         case _ =>
           throw new IllegalArgumentException(s"Unexpected token $token")

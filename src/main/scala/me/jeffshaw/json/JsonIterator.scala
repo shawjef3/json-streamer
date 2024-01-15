@@ -1,16 +1,20 @@
-package me.jeffshaw.zio
+package me.jeffshaw.json
 
 import com.fasterxml.jackson.core.JsonParser
 import io.circe.Json
 
-object IteratorMethods {
+object JsonIterator {
 
-  def iterator(p: JsonParser): Iterator[ValuedJsonToken] =
+  def tokens(p: JsonParser): Iterator[Token] =
     for (token <- Iterator.continually(p.nextToken()).takeWhile(_ != null)) yield {
-      ValuedJsonToken(p, token)
+      Token(p, token)
     }
 
-  def toJsons(decider: Decider, tokens: Iterator[ValuedJsonToken]): Iterator[(Path, Json)] = {
+  def jsons(decider: Decider, p: JsonParser): Iterator[(Path, Json)] = {
+    jsons(decider, tokens(p))
+  }
+
+  def jsons(decider: Decider, tokens: Iterator[Token]): Iterator[(Path, Json)] = {
     tokens.scanLeft[State](State.Init) {
       case (state, token) =>
         state.nextState(decider, token)

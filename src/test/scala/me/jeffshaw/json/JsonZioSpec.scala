@@ -1,9 +1,9 @@
-package me.jeffshaw.zio
+package me.jeffshaw.json
 
 import org.scalatest.funsuite.AnyFunSuite
 import zio.{Chunk, Runtime, Unsafe}
 
-class ZioMethodsSpec extends AnyFunSuite with TestUtils {
+class JsonZioSpec extends AnyFunSuite with TestUtils {
 
   test("empty object") {
     val string = "{}"
@@ -11,10 +11,10 @@ class ZioMethodsSpec extends AnyFunSuite with TestUtils {
     Unsafe.unsafe { implicit unsafe =>
       val js =
         Runtime.default.unsafe.run {
-          ZioMethods.stream(p).runCollect
+          JsonZio.tokens(p).runCollect
         }
       assert(js.isSuccess)
-      assertResult(Chunk(ValuedJsonToken.StartObject, ValuedJsonToken.EndObject))(js.getOrThrowFiberFailure())
+      assertResult(Chunk(Token.StartObject, Token.EndObject))(js.getOrThrowFiberFailure())
     }
   }
 
@@ -22,7 +22,7 @@ class ZioMethodsSpec extends AnyFunSuite with TestUtils {
     Unsafe.unsafe { implicit unsafe =>
       val count =
         Runtime.default.unsafe.run {
-          ZioMethods.stream(serialObjects).runCount
+          JsonZio.tokens(serialObjects).runCount
         }
       assert(count.isSuccess)
       assertResult(objectCount * 2)(count.getOrThrowFiberFailure())
@@ -33,7 +33,7 @@ class ZioMethodsSpec extends AnyFunSuite with TestUtils {
     Unsafe.unsafe { implicit unsafe =>
       val count =
         Runtime.default.unsafe.run {
-          ZioMethods.stream(embeddedObjects).runCount
+          JsonZio.tokens(embeddedObjects).runCount
         }
       assert(count.isSuccess)
       assertResult(3 * objectCount + 1)(count.getOrThrowFiberFailure())
@@ -44,7 +44,7 @@ class ZioMethodsSpec extends AnyFunSuite with TestUtils {
     Unsafe.unsafe { implicit unsafe =>
       val count =
         Runtime.default.unsafe.run {
-          ZioMethods.stream(serialArrays).runCount
+          JsonZio.tokens(serialArrays).runCount
         }
       assert(count.isSuccess)
       assertResult(objectCount * 2)(count.getOrThrowFiberFailure())
@@ -55,7 +55,7 @@ class ZioMethodsSpec extends AnyFunSuite with TestUtils {
     Unsafe.unsafe { implicit unsafe =>
       val count =
         Runtime.default.unsafe.run {
-          ZioMethods.stream(embeddedArrays).runCount
+          JsonZio.tokens(embeddedArrays).runCount
         }
       assert(count.isSuccess)
       assertResult(objectCount * 2)(count.getOrThrowFiberFailure())

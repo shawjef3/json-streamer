@@ -1,4 +1,4 @@
-package me.jeffshaw.zio
+package me.jeffshaw.json
 
 import com.fasterxml.jackson.core.{JsonFactory, JsonFactoryBuilder, JsonParser, StreamReadConstraints}
 import java.io.InputStream

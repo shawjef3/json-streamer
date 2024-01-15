@@ -1,4 +1,4 @@
-package me.jeffshaw.zio
+package me.jeffshaw.json
 
 import com.fasterxml.jackson.core.JsonParser
 import io.circe.Json
@@ -6,18 +6,18 @@ import java.io.IOException
 import zio.ZIO
 import zio.stream.ZStream
 
-object ZioMethods {
+object JsonZio {
 
-  def next(p: JsonParser): Option[ValuedJsonToken] = {
+  def next(p: JsonParser): Option[Token] = {
     val nextToken = p.nextToken()
     if (nextToken == null) {
       None
     } else {
-      Some(ValuedJsonToken(p, nextToken))
+      Some(Token(p, nextToken))
     }
   }
 
-  def nextZio(p: JsonParser): ZIO[Any, Option[IOException], ValuedJsonToken] = {
+  def nextZio(p: JsonParser): ZIO[Any, Option[IOException], Token] = {
     for {
       maybeNext <- ZIO.attempt(next(p)).refineOrDie { case io: IOException => Some(io) }
       result <-
@@ -30,17 +30,21 @@ object ZioMethods {
     } yield result
   }
 
-  def stream: ZStream[JsonParser, IOException, ValuedJsonToken] =
+  def tokens: ZStream[JsonParser, IOException, Token] =
     for {
       p <- ZStream.service[JsonParser]
-      token <- stream(p)
+      token <- tokens(p)
     } yield token
 
-  def stream(p: JsonParser): ZStream[Any, IOException, ValuedJsonToken] = {
+  def tokens(p: JsonParser): ZStream[Any, IOException, Token] = {
     ZStream.repeatZIOOption(nextZio(p))
   }
 
-  def toJsons[R, E](decider: Decider, tokens: ZStream[R, E, ValuedJsonToken]): ZStream[R, E, (Path, Json)] = {
+  def jsons[R](decider: Decider, p: JsonParser): ZStream[R, IOException, (Path, Json)] = {
+    jsons(decider, tokens(p))
+  }
+
+  def jsons[R, E](decider: Decider, tokens: ZStream[R, E, Token]): ZStream[R, E, (Path, Json)] = {
     tokens.mapAccum[State, Option[(Path, Json)]](State.Init) {
       case (state, token) =>
         val nextState = state.nextState(decider, token)

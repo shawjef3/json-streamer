@@ -1,4 +1,4 @@
-package me.jeffshaw.zio
+package me.jeffshaw.json
 
 import com.fasterxml.jackson.core.JsonFactory
 import java.nio.file.{Files, Paths}
@@ -18,7 +18,7 @@ object PrintFlattened extends ZIOAppDefault {
             for {
               in <- ZIO.fromAutoCloseable(ZIO.attemptBlockingIO(Files.newInputStream(Paths.get(arg))))
               parser <- ZIO.fromAutoCloseable(ZIO.attemptBlockingIO(factory.createParser(in)))
-              result <- ZioMethods.toJsons(Decider.stream, ZioMethods.stream(parser))
+              result <- JsonZio.jsons(Decider.stream, JsonZio.tokens(parser))
                 .foreach { case (path, value) =>
                   Console.printLine(s"$path = $value")
                 }

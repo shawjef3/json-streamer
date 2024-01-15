@@ -38,7 +38,7 @@ object Decider {
     }
   }
 
-  def buildAtDepth(depth: Int): Decider = new Decider {
+  def ignoreUntilDepth(depth: Int): Decider = new Decider {
     override def value(path: Path): ValueDecision = {
       if (path.depth >= depth) {
         ValueDecision.Keep

@@ -169,7 +169,7 @@ class StateStreamingSpec extends AnyFunSuite with TestUtils {
     Unsafe.unsafe { implicit unsafe =>
       val js =
         Runtime.default.unsafe.run {
-          ZioMethods.toJsons(Decider.buildAtDepth(2), ZStream(ValuedJsonToken.StartArray, ValuedJsonToken.JInt(0), ValuedJsonToken.StartArray, ValuedJsonToken.JInt(1), ValuedJsonToken.EndArray, ValuedJsonToken.EndArray)).runCollect
+          ZioMethods.toJsons(Decider.ignoreUntilDepth(2), ZStream(ValuedJsonToken.StartArray, ValuedJsonToken.JInt(0), ValuedJsonToken.StartArray, ValuedJsonToken.JInt(1), ValuedJsonToken.EndArray, ValuedJsonToken.EndArray)).runCollect
         }
       assert(js.isSuccess)
       assertResult(Chunk((Path.root.index(1).index(0), Json.fromInt(1))))(js.getOrThrowFiberFailure())

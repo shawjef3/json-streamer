@@ -110,7 +110,7 @@ class StateIteratorSpec extends AnyFunSuite with TestUtils {
 
   test("ignore until inner array") {
     val js =
-      IteratorMethods.toJsons(Decider.buildAtDepth(2), Iterator(ValuedJsonToken.StartArray, ValuedJsonToken.JInt(0), ValuedJsonToken.StartArray, ValuedJsonToken.JInt(1), ValuedJsonToken.EndArray, ValuedJsonToken.EndArray)).toVector
+      IteratorMethods.toJsons(Decider.ignoreUntilDepth(2), Iterator(ValuedJsonToken.StartArray, ValuedJsonToken.JInt(0), ValuedJsonToken.StartArray, ValuedJsonToken.JInt(1), ValuedJsonToken.EndArray, ValuedJsonToken.EndArray)).toVector
     assertResult(Vector((Path.root.index(1).index(0), Json.fromInt(1))))(js)
   }
 

@@ -1,6 +1,7 @@
 package me.jeffshaw.zio
 
 import io.circe.Json
+import scala.collection.mutable
 
 sealed trait State {
   def nextState(decider: Decider, token: ValuedJsonToken): State
@@ -55,7 +56,9 @@ object State {
     decision: ObjectDecision,
     override val outerState: State
   ) extends Builder[(String, Json)] {
-    val objectBuilder = if (decision == ObjectDecision.Build) Vector.newBuilder[(String, Json)] else null
+    // visible for testing
+    private[zio] val objectBuilder: mutable.Builder[(String, Json), Vector[(String, Json)]] =
+      if (decision == ObjectDecision.Build) Vector.newBuilder else null
 
     override def nextState(decider: Decider, token: ValuedJsonToken): State = {
       token match {
@@ -147,7 +150,8 @@ object State {
     override val outerState: State
   ) extends Builder[Json] {
     var index: Long = 0
-    val arrayBuilder = if (decision == ObjectDecision.Build) Vector.newBuilder[Json] else null
+    private val arrayBuilder: mutable.Builder[Json, Vector[Json]] =
+      if (decision == ObjectDecision.Build) Vector.newBuilder else null
 
     override def path: Path = {
       super.path.index(index)

@@ -11,6 +11,7 @@ or skip the value. You can, for example, handle an infinite JSON array from stan
 
 ```scala
 import com.fasterxml.jackson.core.JsonParser
+import io.circe.Json
 import me.jeffshaw.json.JsonIterator
 
 val parser: JsonParser = ???
@@ -24,6 +25,7 @@ or equivalently
 
 ```scala
 import com.fasterxml.jackson.core.JsonParser
+import io.circe.Json
 import me.jeffshaw.json.JsonIterator
 
 val parser: JsonParser = ???
@@ -44,14 +46,15 @@ For instance, the following json will give the resulting iterator. Note that eac
 ```
 
 ```scala
-Iterator(($.a,0), ($.b,[0, 1]))
-```
-
-```scala
 import com.fasterxml.jackson.core.{JsonFactory, JsonParser}
+import io.circe.Json
 import me.jeffshaw.json.JsonIterator
 
 val parser: JsonParser = new JsonFactory().createParser("""{"a": 0, "b": [0, 1]}""")
 
 val jsons: Iterator[(Path, Json)] = JsonIterator.jsons(Decider.streamUntilDepth(1), parser)
+```
+
+```scala
+Iterator(($.a,0), ($.b,[0, 1]))
 ```
